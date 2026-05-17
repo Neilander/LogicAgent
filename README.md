@@ -33,14 +33,4 @@ violandernnn@gmail.com
 
 ## License
 
-待定（见下面的"需要你确认"）。
-
-## 需要你确认
-
-如果要把这个仓库正式推到 GitHub 上做 public，我需要你告诉我：
-
-1. **License**：MIT / Apache-2.0 / 其它？public 研究类项目通常 MIT 或 Apache-2.0。
-2. **GitHub 远程地址**：仓库名就用 `LogicAgent` 吗？我可以用 `gh repo create` 帮你建，但需要确认你已经登录 `gh`。
-3. **技术栈**：主语言是 Python 吗？需要我加 `.gitignore`（Python/Node/通用）？
-4. **首批内容**：要不要我搭一个最小骨架（`agents/`、`evals/`、`docs/`、一个 hello-world agent demo），还是你想完全自己来？
-5. **你的 GitHub 用户名**：git 里看到的是 `Neilander`，README 里要不要写联系方式或者作者署名？
+[Apache License 2.0](LICENSE) — Copyright 2026 Neilander.
