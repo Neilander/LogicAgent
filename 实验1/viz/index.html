@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<title>LogicAgent — Stage 0 Replay</title>
+<style>
+  :root {
+    --bg: #0f1115;
+    --panel: #1a1d24;
+    --border: #2a2f3a;
+    --text: #e6e6e6;
+    --muted: #8b95a7;
+    --accent: #5ee0a1;
+    --food: #6fcf97;
+    --threat: #eb5757;
+    --water: #56ccf2;
+    --self: #f2c94c;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; font-family: -apple-system, sans-serif; background: var(--bg); color: var(--text); }
+  header { padding: 12px 20px; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 16px; }
+  header h1 { margin: 0; font-size: 16px; font-weight: 600; }
+  .meta { color: var(--muted); font-size: 13px; }
+  .controls { padding: 12px 20px; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 12px; }
+  .controls button { background: var(--panel); color: var(--text); border: 1px solid var(--border); padding: 6px 14px; border-radius: 4px; cursor: pointer; font-size: 13px; }
+  .controls button:hover { border-color: var(--accent); }
+  .controls input[type=range] { flex: 1; }
+  .controls .step-label { font-variant-numeric: tabular-nums; min-width: 70px; color: var(--muted); font-size: 13px; }
+  .controls select { background: var(--panel); color: var(--text); border: 1px solid var(--border); padding: 4px 8px; border-radius: 4px; }
+  main { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; padding: 16px; min-height: calc(100vh - 110px); }
+  .panel { background: var(--panel); border: 1px solid var(--border); border-radius: 6px; padding: 16px; display: flex; flex-direction: column; }
+  .panel h2 { margin: 0 0 12px 0; font-size: 13px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; font-weight: 500; }
+  /* Agent view */
+  #view-img { image-rendering: pixelated; width: 100%; max-width: 384px; aspect-ratio: 1; align-self: center; border-radius: 4px; }
+  /* Topology */
+  #topology { width: 100%; aspect-ratio: 1; }
+  /* Plan */
+  .plan-block { margin-bottom: 16px; }
+  .plan-block .label { color: var(--muted); font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; }
+  .plan-block .value { font-family: ui-monospace, monospace; font-size: 13px; }
+  .plan-action { color: var(--accent); font-weight: 600; font-size: 18px; font-family: ui-monospace, monospace; }
+  .plan-target { color: var(--food); font-family: ui-monospace, monospace; }
+  .stats { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 12px; }
+  .stat { background: rgba(255,255,255,0.03); padding: 8px 12px; border-radius: 4px; }
+  .stat .label { color: var(--muted); font-size: 11px; }
+  .stat .value { font-size: 16px; font-family: ui-monospace, monospace; }
+  .bar { height: 4px; background: rgba(255,255,255,0.08); border-radius: 2px; overflow: hidden; margin-top: 4px; }
+  .bar > div { height: 100%; background: var(--accent); transition: width 0.2s; }
+  .bar.hp > div { background: #eb5757; }
+  .bar.food > div { background: var(--food); }
+  .bar.drink > div { background: var(--water); }
+  .bar.energy > div { background: var(--self); }
+  .node-list { font-family: ui-monospace, monospace; font-size: 12px; }
+  .node-list .node-row { padding: 4px 0; display: flex; gap: 8px; }
+  .node-list .node-row .dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; margin-top: 4px; }
+  .empty { color: var(--muted); font-style: italic; font-size: 13px; }
+  #file-input { display: none; }
+  #load-btn { color: var(--accent); cursor: pointer; text-decoration: underline; }
+</style>
+</head>
+<body>
+<header>
+  <h1>LogicAgent · Stage 0 Replay</h1>
+  <span class="meta" id="meta-info">未加载 trace</span>
+  <span style="flex:1"></span>
+  <label id="load-btn" for="file-input">载入本地 trace.json</label>
+  <input type="file" id="file-input" accept=".json">
+</header>
+
+<div class="controls">
+  <button id="play-btn">▶ 播放</button>
+  <button id="prev-btn">◀</button>
+  <button id="next-btn">▶</button>
+  <span class="step-label" id="step-label">step 0 / 0</span>
+  <input type="range" id="step-slider" min="0" max="0" value="0">
+  <select id="speed-select">
+    <option value="500">0.5×</option>
+    <option value="250" selected>1×</option>
+    <option value="100">2×</option>
+    <option value="50">5×</option>
+  </select>
+</div>
+
+<main>
+  <div class="panel">
+    <h2>Agent 视野（Crafter render）</h2>
+    <img id="view-img" alt="agent view">
+    <div style="margin-top: 12px; color: var(--muted); font-size: 12px;">
+      Agent 当前帧。视野是以 player 为中心的 9×9 范围（黄色高亮）。
+    </div>
+  </div>
+
+  <div class="panel">
+    <h2>识别的拓扑图（节点 = 抽象描述，不暴露坐标）</h2>
+    <svg id="topology" viewBox="-110 -110 220 220">
+      <!-- distance bands -->
+      <circle cx="0" cy="0" r="35" fill="none" stroke="#2a2f3a" stroke-dasharray="2,3"/>
+      <circle cx="0" cy="0" r="70" fill="none" stroke="#2a2f3a" stroke-dasharray="2,3"/>
+      <circle cx="0" cy="0" r="100" fill="none" stroke="#2a2f3a" stroke-dasharray="2,3"/>
+      <text x="0" y="-37" text-anchor="middle" fill="#8b95a7" font-size="9">close</text>
+      <text x="0" y="-72" text-anchor="middle" fill="#8b95a7" font-size="9">mid</text>
+      <text x="0" y="-102" text-anchor="middle" fill="#8b95a7" font-size="9">far</text>
+      <!-- direction ticks -->
+      <text x="0" y="-105" text-anchor="middle" fill="#8b95a7" font-size="8" dy="-2">N</text>
+      <text x="105" y="3" text-anchor="middle" fill="#8b95a7" font-size="8">E</text>
+      <text x="0" y="115" text-anchor="middle" fill="#8b95a7" font-size="8">S</text>
+      <text x="-105" y="3" text-anchor="middle" fill="#8b95a7" font-size="8">W</text>
+      <g id="topo-nodes"></g>
+    </svg>
+    <div id="node-list-container" style="margin-top: 12px;">
+      <div style="color: var(--muted); font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px;">节点列表（给 LLM 看的就是这些）</div>
+      <div id="node-list" class="node-list"></div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <h2>宏观指令 + 状态</h2>
+    <div class="plan-block">
+      <div class="label">规划核（greedy_nearest）→ 当前 plan</div>
+      <div class="plan-action" id="plan-action">-</div>
+      <div class="plan-target" id="plan-target"></div>
+      <div class="value" style="color: var(--muted); margin-top: 4px;" id="plan-reason"></div>
+    </div>
+    <div class="plan-block">
+      <div class="label">Executor 输出（原子动作）</div>
+      <div class="value" id="atomic-actions">-</div>
+      <div class="value" style="color: var(--muted); margin-top: 4px;" id="action-this-step"></div>
+    </div>
+    <div class="plan-block">
+      <div class="label">Self state</div>
+      <div class="stats">
+        <div class="stat"><div class="label">HP</div><div class="value" id="hp-val">-</div><div class="bar hp"><div id="hp-bar"></div></div></div>
+        <div class="stat"><div class="label">FOOD</div><div class="value" id="food-val">-</div><div class="bar food"><div id="food-bar"></div></div></div>
+        <div class="stat"><div class="label">DRINK</div><div class="value" id="drink-val">-</div><div class="bar drink"><div id="drink-bar"></div></div></div>
+        <div class="stat"><div class="label">ENERGY</div><div class="value" id="energy-val">-</div><div class="bar energy"><div id="energy-bar"></div></div></div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<script>
+const KIND_COLORS = {
+  food: '#6fcf97',
+  threat: '#eb5757',
+  water: '#56ccf2',
+  obstacle: '#828282',
+  resource: '#bb86fc',
+};
+const DIR_TO_ANGLE = {
+  E: 0, NE: -45, N: -90, NW: -135, W: 180, SW: 135, S: 90, SE: 45,
+};
+const DIST_TO_R = { close: 35, mid: 70, far: 100 };
+
+let trace = null;
+let currentStep = 0;
+let playInterval = null;
+
+const $ = id => document.getElementById(id);
+
+function render(step) {
+  if (!trace) return;
+  const data = trace.steps[step];
+  if (!data) return;
+  $('view-img').src = 'data:image/png;base64,' + data.image_b64;
+
+  // topology
+  const g = $('topo-nodes');
+  g.innerHTML = '';
+  // self at center
+  g.innerHTML += `<circle cx="0" cy="0" r="6" fill="#f2c94c"/><text x="0" y="2" text-anchor="middle" font-size="6" fill="#0f1115" font-weight="bold">ME</text>`;
+  data.graph.forEach(n => {
+    const angle = (DIR_TO_ANGLE[n.direction] ?? 0) * Math.PI / 180;
+    const r = DIST_TO_R[n.distance] ?? 50;
+    const x = r * Math.cos(angle);
+    const y = r * Math.sin(angle);
+    const color = KIND_COLORS[n.kind] || '#ddd';
+    const isTarget = data.plan && data.plan.target === n.id;
+    g.innerHTML += `
+      <circle cx="${x}" cy="${y}" r="${isTarget ? 9 : 6}"
+              fill="${color}"
+              stroke="${isTarget ? '#fff' : 'none'}" stroke-width="2"/>
+      <text x="${x}" y="${y - 12}" text-anchor="middle" font-size="7" fill="#e6e6e6">${n.id}</text>`;
+  });
+
+  // node list
+  const nl = $('node-list');
+  if (data.graph.length === 0) {
+    nl.innerHTML = '<div class="empty">（空——视野内未发现任何识别核命中）</div>';
+  } else {
+    nl.innerHTML = data.graph.map(n => `
+      <div class="node-row">
+        <div class="dot" style="background:${KIND_COLORS[n.kind] || '#ddd'}"></div>
+        <div><span style="color:${data.plan && data.plan.target === n.id ? '#fff' : '#e6e6e6'}; font-weight:${data.plan && data.plan.target === n.id ? '600' : '400'}">${n.id}</span><br><span style="color: var(--muted)">${n.description}</span></div>
+      </div>`).join('');
+  }
+
+  // plan
+  $('plan-action').textContent = data.plan.action;
+  $('plan-target').textContent = data.plan.target ? '→ ' + data.plan.target : '';
+  $('plan-reason').textContent = data.plan.reason || '';
+
+  // atomic
+  $('atomic-actions').textContent = '[' + data.atomic_queue.join(', ') + ']';
+  $('action-this-step').textContent = 'this step: ' + data.action_this_step;
+
+  // stats
+  const s = data.self_state;
+  const setBar = (name, val, max) => {
+    $(name + '-val').textContent = val;
+    $(name + '-bar').style.width = (val / max * 100) + '%';
+  };
+  setBar('hp', s.hp, 9);
+  setBar('food', s.food, 9);
+  setBar('drink', s.drink, 9);
+  setBar('energy', s.energy, 9);
+
+  // controls
+  $('step-label').textContent = `step ${step} / ${trace.steps.length - 1}`;
+  $('step-slider').value = step;
+}
+
+function loadTrace(data) {
+  trace = data;
+  $('meta-info').textContent = `seed=${trace.meta.seed} · 共 ${trace.steps.length} 步 · ${trace.meta.died ? '✗ 死亡' : '✓ 存活'} · 成就: ${trace.meta.achievements_unlocked.join(', ') || '无'}`;
+  $('step-slider').max = trace.steps.length - 1;
+  currentStep = 0;
+  render(0);
+}
+
+// Try to autoload trace.json
+fetch('trace.json').then(r => r.ok ? r.json() : null).then(d => { if (d) loadTrace(d); }).catch(() => {});
+
+$('file-input').addEventListener('change', e => {
+  const f = e.target.files[0];
+  if (!f) return;
+  const reader = new FileReader();
+  reader.onload = () => loadTrace(JSON.parse(reader.result));
+  reader.readAsText(f);
+});
+
+$('step-slider').addEventListener('input', e => {
+  currentStep = parseInt(e.target.value);
+  render(currentStep);
+});
+$('prev-btn').addEventListener('click', () => { if (currentStep > 0) { currentStep--; render(currentStep); } });
+$('next-btn').addEventListener('click', () => { if (trace && currentStep < trace.steps.length - 1) { currentStep++; render(currentStep); } });
+
+$('play-btn').addEventListener('click', () => {
+  if (playInterval) {
+    clearInterval(playInterval);
+    playInterval = null;
+    $('play-btn').textContent = '▶ 播放';
+  } else {
+    const speed = parseInt($('speed-select').value);
+    playInterval = setInterval(() => {
+      if (!trace || currentStep >= trace.steps.length - 1) {
+        clearInterval(playInterval);
+        playInterval = null;
+        $('play-btn').textContent = '▶ 播放';
+        return;
+      }
+      currentStep++;
+      render(currentStep);
+    }, speed);
+    $('play-btn').textContent = '⏸ 暂停';
+  }
+});
+
+document.addEventListener('keydown', e => {
+  if (e.key === 'ArrowLeft') $('prev-btn').click();
+  if (e.key === 'ArrowRight') $('next-btn').click();
+  if (e.key === ' ') { e.preventDefault(); $('play-btn').click(); }
+});
+</script>
+</body>
+</html>

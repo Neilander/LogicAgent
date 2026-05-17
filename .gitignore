@@ -68,3 +68,6 @@ Thumbs.db
 .claude/
 scratch/
 tmp/
+
+# --- Experiment runtime artifacts ---
+实验*/viz/trace*.json
