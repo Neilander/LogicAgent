@@ -27,6 +27,10 @@ LogicAgent 想反过来：**先把推理结构立起来，再让 agent 用最少
 - 评测脚本（怎么衡量"少动作 + 高成功率"）
 - 笔记与设计文档（在 `docs/` 下）
 
+## Contact
+
+violandernnn@gmail.com
+
 ## License
 
 待定（见下面的"需要你确认"）。
