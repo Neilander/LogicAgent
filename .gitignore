@@ -11,11 +11,10 @@ dist/
 .eggs/
 pip-wheel-metadata/
 
-# Virtualenvs
+# Virtualenvs (don't ignore plain "env/" — that's also a valid module name;
+# on macOS the filesystem is case-insensitive, so "ENV/" also matches "env/")
 .venv/
 venv/
-env/
-ENV/
 .python-version
 
 # Testing / coverage

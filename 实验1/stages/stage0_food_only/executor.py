@@ -1,41 +1,107 @@
-"""Executor：把宏观动作（goto/explore）翻译成 Crafter 原子动作。
+"""Executor：把宏观动作（goto / explore）翻译成 Crafter 原子动作。
 
-设计上 Stage 0 给 LLM 看的是节点的 LLM-facing 字段（id + description），
-但 Executor 内部会查目标节点的 _grid_pos 来选移动方向。
+Stage 0 用 **确定性 Executor**（不调 LLM），目的是先验证"识别核+节点图+规划核"
+这条 pipeline 真的能让 agent 不饿死。LLM Executor 留到 Stage 0b 做对比。
 
-LLM 调用：让 Claude 看当前节点图 + 选中的目标节点描述 + Crafter 可用动作列表，
-输出未来 N 步的原子动作序列（带短理由）。
+策略：
+  - goto(node)：查节点的 _grid_pos (dx, dy)，选 |dx|/|dy| 更大的轴先走一步。
+    走到相邻（max(|dx|,|dy|)==1）就触发 'do' 吃 / 收。
+  - explore：朝当前未走过最多的方向连走两步（朴素 epsilon-greedy 探索）。
 """
 
-from typing import Any
+import random
+from typing import Optional
 
-from llm.claude_cli import claude_prompt
-from .types import Graph
+import numpy as np
 
-# Crafter 原子动作 ID（依 crafter.Env.action_names 的顺序）
-CRAFTER_ACTIONS = [
-    "noop", "move_left", "move_right", "move_up", "move_down",
-    "do", "sleep", "place_stone", "place_table", "place_furnace",
-    "place_plant", "make_wood_pickaxe", "make_stone_pickaxe",
-    "make_wood_sword", "make_stone_sword",
-]
+from env.crafter_wrap import TILE_NAME_TO_ID, WALKABLE_TILE_IDS
+from .types import Graph, Node
 
 
-def execute(plan: dict, graph: Graph, raw_obs: Any, max_atomic: int = 5) -> list[str]:
-    """把 plan（来自规划核）转成最多 max_atomic 个原子动作名。
+def execute(
+    plan: dict,
+    graph: Graph,
+    semantic: np.ndarray,
+    explore_state: Optional[dict] = None,
+    rng: Optional[random.Random] = None,
+) -> list[str]:
+    rng = rng or random.Random()
+    player_pos = graph.self_state["world_pos"]
+    if plan["action"] == "goto":
+        node = graph.by_id(plan["target"])
+        if node is None:
+            return ["noop"]
+        return _atomic_for_goto(node, semantic, player_pos)
+    elif plan["action"] == "explore":
+        return _atomic_for_explore(semantic, player_pos, rng)
+    return ["noop"]
 
-    Args:
-        plan: {"action": "goto", "target": node_id, ...}
-        graph: 当前节点图（含隐藏的 _grid_pos）
-        raw_obs: 当前 raw observation（给 LLM 更完整上下文）
-        max_atomic: 一次最多输出几个原子动作
 
-    Returns:
-        list of atomic action names from CRAFTER_ACTIONS
-    """
-    raise NotImplementedError
+def _atomic_for_goto(node: Node, semantic: np.ndarray, player_pos) -> list[str]:
+    dx, dy = node._grid_pos
+    # 相邻 → 朝目标方向并触发 do
+    if max(abs(dx), abs(dy)) <= 1:
+        face_action = _face_dir(dx, dy)
+        return [face_action, "do"] if face_action else ["do"]
+
+    # 选大轴先走
+    if abs(dx) >= abs(dy):
+        primary = "move_right" if dx > 0 else "move_left"
+        secondary = "move_down" if dy > 0 else ("move_up" if dy < 0 else None)
+    else:
+        primary = "move_down" if dy > 0 else "move_up"
+        secondary = "move_right" if dx > 0 else ("move_left" if dx < 0 else None)
+
+    # primary 不通就 fall back
+    if _tile_after_move(semantic, primary, player_pos) not in WALKABLE_TILE_IDS and secondary:
+        if _tile_after_move(semantic, secondary, player_pos) in WALKABLE_TILE_IDS:
+            return [secondary]
+    return [primary]
 
 
-def _build_prompt(plan: dict, graph: Graph, raw_obs: Any) -> str:
-    """构造给 Claude 的 prompt。要求输出 JSON。"""
-    raise NotImplementedError
+def _atomic_for_explore(
+    semantic: np.ndarray,
+    player_pos,
+    rng: random.Random,
+) -> list[str]:
+    """没看到食物时的探索：朝一个 walkable 方向走 2 步。"""
+    candidates = []
+    for action in ["move_right", "move_down", "move_left", "move_up"]:
+        if _tile_after_move(semantic, action, player_pos) in WALKABLE_TILE_IDS:
+            candidates.append(action)
+    if not candidates:
+        return ["noop"]
+    return [rng.choice(candidates), rng.choice(candidates)]
+
+
+def _face_dir(dx: int, dy: int) -> Optional[str]:
+    """把"朝目标走一步 / 转向"映射到 Crafter 动作。Crafter 里 move_* 既转向也移动。"""
+    if abs(dx) >= abs(dy):
+        if dx > 0:
+            return "move_right"
+        if dx < 0:
+            return "move_left"
+    if dy > 0:
+        return "move_down"
+    if dy < 0:
+        return "move_up"
+    return None
+
+
+_DIR_TO_DELTA = {
+    "move_right": (1, 0),    # +x
+    "move_left": (-1, 0),    # -x
+    "move_down": (0, 1),     # +y
+    "move_up": (0, -1),      # -y
+}
+
+
+def _tile_after_move(semantic: np.ndarray, action: str, player_pos) -> int:
+    """看 player 朝 action 走一步后那个 tile 的 id。semantic 索引是 [x, y]。"""
+    if action not in _DIR_TO_DELTA:
+        return -1
+    ddx, ddy = _DIR_TO_DELTA[action]
+    nx, ny = int(player_pos[0]) + ddx, int(player_pos[1]) + ddy
+    if 0 <= nx < semantic.shape[0] and 0 <= ny < semantic.shape[1]:
+        return int(semantic[nx, ny])
+    return -1

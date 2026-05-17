@@ -1,17 +1,28 @@
-"""规划核：在节点图上选下一步宏观行动。
+"""规划核：greedy_nearest。
 
-Stage 0 只实现 greedy_nearest：在所有 food 节点里挑最近的，输出 goto。
-如果视野里没有食物 → 输出 explore（让 Executor 自由走动找新视野）。
+策略：
+  - 如果视野有食物 → 选切比雪夫距离最近的（同距优先 plant 而非 cow，避免战斗）
+  - 如果视野没食物 → 输出 explore（让 Executor 自己往一个方向走探索新视野）
 """
 
 from .types import Graph
 
 
 def greedy_nearest(graph: Graph) -> dict:
-    """挑最近的食物节点。
+    food_nodes = [n for n in graph.nodes if n.kind == "food"]
+    if not food_nodes:
+        return {"action": "explore", "reason": "视野内无食物，往未知方向移动"}
 
-    Returns:
-        {"action": "goto", "target": node_id, "reason": "最近的食物"} 或
-        {"action": "explore", "reason": "视野内无食物"}
-    """
-    raise NotImplementedError
+    def priority(n):
+        dx, dy = n._grid_pos
+        cheb = max(abs(dx), abs(dy))
+        # plant 优先（cow 需要战斗）
+        kind_pref = 0 if n.extra.get("raw_kind") == "plant" else 1
+        return (cheb, kind_pref)
+
+    target = min(food_nodes, key=priority)
+    return {
+        "action": "goto",
+        "target": target.id,
+        "reason": f"最近的食物：{target.description}",
+    }

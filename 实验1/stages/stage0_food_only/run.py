@@ -1,52 +1,76 @@
-"""Stage 0 入口：跑一个 Crafter episode，记录指标和决策 trace。
-
-Pipeline：
-    raw obs → 识别核 → Graph → 规划核 → Executor (Claude) → atomic actions → env.step
-"""
+"""Stage 0 入口：跑一个 Crafter episode，记录指标和决策 trace。"""
 
 import argparse
 import json
+import random
+import sys
 from pathlib import Path
 
+# 让 `python stages/stage0_food_only/run.py` 也能 import 项目根的 env/llm
+sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
+
 from env.crafter_wrap import CrafterEnv
-from .executor import execute
-from .graph import build_graph
-from .planner import greedy_nearest
+from stages.stage0_food_only.executor import execute
+from stages.stage0_food_only.graph import build_graph, graph_to_text
+from stages.stage0_food_only.planner import greedy_nearest
 
 
-def run_episode(seed: int = 0, max_steps: int = 200, log_path: Path | None = None) -> dict:
+def run_episode(
+    seed: int = 0,
+    max_steps: int = 200,
+    log_path: Path | None = None,
+    verbose: bool = False,
+) -> dict:
     env = CrafterEnv(seed=seed)
-    obs, self_state = env.reset()
+    semantic, self_state = env.reset()
+    rng = random.Random(seed)
 
     trace = []
     step = 0
-    while step < max_steps:
-        graph = build_graph(obs, self_state)
+    done = False
+    while step < max_steps and not done:
+        graph = build_graph(semantic, self_state)
         plan = greedy_nearest(graph)
-        atomic_actions = execute(plan, graph, obs)
+        atomic_actions = execute(plan, graph, semantic, rng=rng)
+
+        if verbose:
+            print(f"\n--- step {step} ---")
+            print(graph_to_text(graph))
+            print(f"plan: {plan}")
+            print(f"actions: {atomic_actions}")
 
         for action in atomic_actions:
-            obs, self_state, reward, done, info = env.step(action)
+            semantic, self_state, reward, done, info = env.step(action)
             trace.append({
                 "step": step,
-                "graph": [n.id for n in graph.nodes],
+                "graph_nodes": [n.id for n in graph.nodes],
                 "plan": plan,
                 "action": action,
                 "reward": reward,
+                "hp": self_state["hp"],
+                "food": self_state["food"],
+                "drink": self_state["drink"],
             })
             step += 1
             if done or step >= max_steps:
                 break
-        if done:
-            break
 
+    achievements = env.achievements()
     metrics = {
+        "seed": seed,
         "survived_steps": step,
-        "achievements": env.achievements(),
-        "died": done and self_state.get("hp", 0) <= 0,
+        "died": done,
+        "final_hp": self_state["hp"],
+        "final_food": self_state["food"],
+        "final_drink": self_state["drink"],
+        "achievements_unlocked": [k for k, v in achievements.items() if v],
+        "achievement_count": sum(1 for v in achievements.values() if v),
     }
     if log_path:
-        log_path.write_text(json.dumps({"metrics": metrics, "trace": trace}, indent=2, ensure_ascii=False))
+        log_path.parent.mkdir(parents=True, exist_ok=True)
+        log_path.write_text(json.dumps(
+            {"metrics": metrics, "trace": trace}, indent=2, ensure_ascii=False
+        ))
     return metrics
 
 
@@ -55,7 +79,13 @@ if __name__ == "__main__":
     parser.add_argument("--seed", type=int, default=0)
     parser.add_argument("--max-steps", type=int, default=200)
     parser.add_argument("--log", type=Path, default=None)
+    parser.add_argument("--verbose", action="store_true")
     args = parser.parse_args()
 
-    result = run_episode(seed=args.seed, max_steps=args.max_steps, log_path=args.log)
+    result = run_episode(
+        seed=args.seed,
+        max_steps=args.max_steps,
+        log_path=args.log,
+        verbose=args.verbose,
+    )
     print(json.dumps(result, indent=2, ensure_ascii=False))
