@@ -1,0 +1,69 @@
+{
+  "stage": "stages.h3_water_threat",
+  "n_seeds": 5,
+  "max_steps": 400,
+  "survived_steps": {
+    "median": 178,
+    "mean": 184.8,
+    "min": 168,
+    "max": 213
+  },
+  "death_rate": 1.0,
+  "death_cause": {
+    "hp_zero": 4,
+    "starve_or_thirst": 1,
+    "timeout_alive": 0
+  },
+  "final_state_mean": {
+    "hp": 0,
+    "food": 5.2,
+    "drink": 2.2
+  },
+  "achievement_rates": {
+    "collect_drink": 0.4,
+    "collect_sapling": 0.2,
+    "eat_cow": 0.6
+  },
+  "per_seed": [
+    {
+      "seed": 0,
+      "survived": 168,
+      "died": true,
+      "ach": []
+    },
+    {
+      "seed": 1,
+      "survived": 213,
+      "died": true,
+      "ach": [
+        "eat_cow"
+      ]
+    },
+    {
+      "seed": 2,
+      "survived": 195,
+      "died": true,
+      "ach": [
+        "collect_drink",
+        "eat_cow"
+      ]
+    },
+    {
+      "seed": 3,
+      "survived": 170,
+      "died": true,
+      "ach": [
+        "eat_cow"
+      ]
+    },
+    {
+      "seed": 4,
+      "survived": 178,
+      "died": true,
+      "ach": [
+        "collect_drink",
+        "collect_sapling"
+      ]
+    }
+  ]
+}

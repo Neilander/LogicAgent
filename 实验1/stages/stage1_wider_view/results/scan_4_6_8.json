@@ -1,0 +1,131 @@
+{
+  "4": {
+    "median": 182,
+    "mean": 185.8,
+    "death_rate": 1.0,
+    "death_cause": {
+      "hp_zero": 5,
+      "starve_or_thirst": 0,
+      "timeout_alive": 0
+    },
+    "ach_rates": {
+      "collect_drink": 0.4,
+      "collect_sapling": 0.4,
+      "collect_wood": 0.4,
+      "eat_cow": 1.0
+    },
+    "final_mean": {
+      "hp": 0,
+      "food": 5.6,
+      "drink": 1.8
+    },
+    "per_seed": [
+      [
+        0,
+        212
+      ],
+      [
+        1,
+        164
+      ],
+      [
+        2,
+        194
+      ],
+      [
+        3,
+        177
+      ],
+      [
+        4,
+        182
+      ]
+    ]
+  },
+  "6": {
+    "median": 189,
+    "mean": 192.2,
+    "death_rate": 1.0,
+    "death_cause": {
+      "hp_zero": 2,
+      "starve_or_thirst": 3,
+      "timeout_alive": 0
+    },
+    "ach_rates": {
+      "collect_drink": 0.2,
+      "collect_sapling": 0.8,
+      "collect_wood": 0.4,
+      "eat_cow": 0.8
+    },
+    "final_mean": {
+      "hp": 0,
+      "food": 4.2,
+      "drink": 0.6
+    },
+    "per_seed": [
+      [
+        0,
+        221
+      ],
+      [
+        1,
+        166
+      ],
+      [
+        2,
+        182
+      ],
+      [
+        3,
+        203
+      ],
+      [
+        4,
+        189
+      ]
+    ]
+  },
+  "8": {
+    "median": 189,
+    "mean": 205.2,
+    "death_rate": 1.0,
+    "death_cause": {
+      "hp_zero": 2,
+      "starve_or_thirst": 3,
+      "timeout_alive": 0
+    },
+    "ach_rates": {
+      "collect_drink": 0.2,
+      "collect_sapling": 0.8,
+      "collect_wood": 0.8,
+      "eat_cow": 1.0
+    },
+    "final_mean": {
+      "hp": 0,
+      "food": 6.2,
+      "drink": 0.4
+    },
+    "per_seed": [
+      [
+        0,
+        240
+      ],
+      [
+        1,
+        228
+      ],
+      [
+        2,
+        182
+      ],
+      [
+        3,
+        187
+      ],
+      [
+        4,
+        189
+      ]
+    ]
+  }
+}

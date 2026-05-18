@@ -1,0 +1,72 @@
+{
+  "stage": "stages.h4_goal_commit",
+  "n_seeds": 5,
+  "max_steps": 400,
+  "survived_steps": {
+    "median": 196,
+    "mean": 196.6,
+    "min": 169,
+    "max": 220
+  },
+  "death_rate": 1.0,
+  "death_cause": {
+    "hp_zero": 3,
+    "starve_or_thirst": 2,
+    "timeout_alive": 0
+  },
+  "final_state_mean": {
+    "hp": 0,
+    "food": 4.4,
+    "drink": 2.6
+  },
+  "achievement_rates": {
+    "collect_drink": 0.4,
+    "collect_sapling": 0.2,
+    "collect_wood": 0.2,
+    "eat_cow": 0.6
+  },
+  "per_seed": [
+    {
+      "seed": 0,
+      "survived": 169,
+      "died": true,
+      "ach": [
+        "collect_sapling",
+        "eat_cow"
+      ]
+    },
+    {
+      "seed": 1,
+      "survived": 220,
+      "died": true,
+      "ach": [
+        "eat_cow"
+      ]
+    },
+    {
+      "seed": 2,
+      "survived": 195,
+      "died": true,
+      "ach": [
+        "collect_drink",
+        "eat_cow"
+      ]
+    },
+    {
+      "seed": 3,
+      "survived": 203,
+      "died": true,
+      "ach": [
+        "collect_wood"
+      ]
+    },
+    {
+      "seed": 4,
+      "survived": 196,
+      "died": true,
+      "ach": [
+        "collect_drink"
+      ]
+    }
+  ]
+}

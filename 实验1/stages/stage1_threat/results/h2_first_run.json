@@ -1,0 +1,79 @@
+{
+  "stage": "stages.stage1_threat",
+  "n_seeds": 5,
+  "max_steps": 400,
+  "survived_steps": {
+    "median": 182,
+    "mean": 186,
+    "min": 153,
+    "max": 212
+  },
+  "death_rate": 1.0,
+  "death_cause": {
+    "hp_zero": 3,
+    "starve_or_thirst": 2,
+    "timeout_alive": 0
+  },
+  "final_state_mean": {
+    "hp": 0,
+    "food": 7,
+    "drink": 0.8
+  },
+  "achievement_rates": {
+    "collect_drink": 0.2,
+    "collect_sapling": 0.8,
+    "collect_wood": 0.8,
+    "eat_cow": 1.0
+  },
+  "per_seed": [
+    {
+      "seed": 0,
+      "survived": 175,
+      "died": true,
+      "ach": [
+        "collect_sapling",
+        "collect_wood",
+        "eat_cow"
+      ]
+    },
+    {
+      "seed": 1,
+      "survived": 153,
+      "died": true,
+      "ach": [
+        "collect_wood",
+        "eat_cow"
+      ]
+    },
+    {
+      "seed": 2,
+      "survived": 208,
+      "died": true,
+      "ach": [
+        "collect_drink",
+        "collect_sapling",
+        "eat_cow"
+      ]
+    },
+    {
+      "seed": 3,
+      "survived": 212,
+      "died": true,
+      "ach": [
+        "collect_sapling",
+        "collect_wood",
+        "eat_cow"
+      ]
+    },
+    {
+      "seed": 4,
+      "survived": 182,
+      "died": true,
+      "ach": [
+        "collect_sapling",
+        "collect_wood",
+        "eat_cow"
+      ]
+    }
+  ]
+}

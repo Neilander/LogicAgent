@@ -1,0 +1,272 @@
+<!DOCTYPE html><html lang="zh"><head><meta charset='UTF-8'><title>Topology Demo</title>
+<style>
+body { background:#0f1115; color:#e6e6e6; font-family:-apple-system,sans-serif; padding:24px; margin:0; }
+h1 { font-size:20px; margin:0 0 8px 0; }
+p.subtitle { color:#8b95a7; font-size:13px; margin:0 0 20px 0; }
+.legend { display:flex; gap:18px; font-size:12px; color:#8b95a7; margin-bottom:24px; align-items:center; }
+.legend span { display:inline-flex; align-items:center; gap:6px; }
+.legend .sw { width:14px; height:14px; display:inline-block; border-radius:50%; }
+.legend .swsq { width:14px; height:14px; display:inline-block; }
+.panel { background:#1a1d24; border:1px solid #2a2f3a; border-radius:8px; padding:20px; margin-bottom:24px; }
+.panel h2 { font-size:14px; margin:0 0 16px 0; color:#5ee0a1; font-weight:600; }
+.cols { display:grid; grid-template-columns:auto auto 1fr; gap:24px; align-items:start; }
+.cap { font-size:11px; color:#8b95a7; margin-bottom:8px; text-transform:uppercase; letter-spacing:0.5px; }
+table { border-collapse:collapse; font-family:ui-monospace,monospace; font-size:12px; width:100%; }
+td { padding:6px 10px; border-bottom:1px solid #2a2f3a; }
+</style></head><body>
+<h1>topology builder — 把 grid 算成"我能去哪里"</h1>
+<p class="subtitle">左边是世界，右边是从 ME（玩家）视角的拓扑图：自己在中心、其他点按"方向 + 距离"摆放，连线 = 最短走的步数。</p>
+<div class="legend">
+  <span><span class="sw" style="background:#f2c94c"></span>cow</span>
+  <span><span class="sw" style="background:#6fcf97"></span>plant</span>
+  <span><span class="sw" style="background:#56ccf2"></span>water</span>
+  <span><span class="sw" style="background:#fff;border:2px solid #f2c94c"></span>ME (玩家)</span>
+  <span><span class="swsq" style="background:#3a3f4a"></span>障碍</span>
+  <span><span class="swsq" style="background:#1a1d24"></span>可走</span>
+</div>
+<div class="panel">
+  <h2>Demo 1 — 开放地图</h2>
+  <div class="cols">
+    <div>
+      <div class="cap">世界地图</div>
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 332 332" style="background:#0f1115;font-family:-apple-system,sans-serif">
+<rect x="12" y="12" width="44" height="44" fill="#1a1d24" stroke="#2a2f3a"/>
+<rect x="56" y="12" width="44" height="44" fill="#1a1d24" stroke="#2a2f3a"/>
+<rect x="100" y="12" width="44" height="44" fill="#1a1d24" stroke="#2a2f3a"/>
+<rect x="144" y="12" width="44" height="44" fill="#3a3f4a" stroke="#2a2f3a"/>
+<rect x="188" y="12" width="44" height="44" fill="#3a3f4a" stroke="#2a2f3a"/>
+<rect x="232" y="12" width="44" height="44" fill="#1a1d24" stroke="#2a2f3a"/>
+<rect x="276" y="12" width="44" height="44" fill="#6fcf97" stroke="#2a2f3a" opacity="0.85"/>
+<text x="298.0" y="38.0" text-anchor="middle" font-size="14" fill="#0f1115" font-weight="bold">P</text>
+<rect x="12" y="56" width="44" height="44" fill="#1a1d24" stroke="#2a2f3a"/>
+<rect x="56" y="56" width="44" height="44" fill="#3a3f4a" stroke="#2a2f3a"/>
+<rect x="100" y="56" width="44" height="44" fill="#1a1d24" stroke="#2a2f3a"/>
+<circle cx="122.0" cy="78.0" r="12.32" fill="#ffffff" stroke="#f2c94c" stroke-width="3"/>
+<text x="122.0" y="82.0" text-anchor="middle" font-size="13" fill="#0f1115" font-weight="bold">ME</text>
+<rect x="144" y="56" width="44" height="44" fill="#1a1d24" stroke="#2a2f3a"/>
+<rect x="188" y="56" width="44" height="44" fill="#1a1d24" stroke="#2a2f3a"/>
+<rect x="232" y="56" width="44" height="44" fill="#1a1d24" stroke="#2a2f3a"/>
+<rect x="276" y="56" width="44" height="44" fill="#1a1d24" stroke="#2a2f3a"/>
+<rect x="12" y="100" width="44" height="44" fill="#1a1d24" stroke="#2a2f3a"/>
+<rect x="56" y="100" width="44" height="44" fill="#3a3f4a" stroke="#2a2f3a"/>
+<rect x="100" y="100" width="44" height="44" fill="#3a3f4a" stroke="#2a2f3a"/>
+<rect x="144" y="100" width="44" height="44" fill="#1a1d24" stroke="#2a2f3a"/>
+<rect x="188" y="100" width="44" height="44" fill="#3a3f4a" stroke="#2a2f3a"/>
+<rect x="232" y="100" width="44" height="44" fill="#3a3f4a" stroke="#2a2f3a"/>
+<rect x="276" y="100" width="44" height="44" fill="#1a1d24" stroke="#2a2f3a"/>
+<rect x="12" y="144" width="44" height="44" fill="#f2c94c" stroke="#2a2f3a" opacity="0.85"/>
+<text x="34.0" y="170.0" text-anchor="middle" font-size="14" fill="#0f1115" font-weight="bold">C</text>
+<rect x="56" y="144" width="44" height="44" fill="#1a1d24" stroke="#2a2f3a"/>
+<rect x="100" y="144" width="44" height="44" fill="#1a1d24" stroke="#2a2f3a"/>
+<rect x="144" y="144" width="44" height="44" fill="#1a1d24" stroke="#2a2f3a"/>
+<rect x="188" y="144" width="44" height="44" fill="#1a1d24" stroke="#2a2f3a"/>
+<rect x="232" y="144" width="44" height="44" fill="#3a3f4a" stroke="#2a2f3a"/>
+<rect x="276" y="144" width="44" height="44" fill="#1a1d24" stroke="#2a2f3a"/>
+<rect x="12" y="188" width="44" height="44" fill="#1a1d24" stroke="#2a2f3a"/>
+<rect x="56" y="188" width="44" height="44" fill="#1a1d24" stroke="#2a2f3a"/>
+<rect x="100" y="188" width="44" height="44" fill="#3a3f4a" stroke="#2a2f3a"/>
+<rect x="144" y="188" width="44" height="44" fill="#3a3f4a" stroke="#2a2f3a"/>
+<rect x="188" y="188" width="44" height="44" fill="#1a1d24" stroke="#2a2f3a"/>
+<rect x="232" y="188" width="44" height="44" fill="#3a3f4a" stroke="#2a2f3a"/>
+<rect x="276" y="188" width="44" height="44" fill="#1a1d24" stroke="#2a2f3a"/>
+<rect x="12" y="232" width="44" height="44" fill="#56ccf2" stroke="#2a2f3a" opacity="0.85"/>
+<text x="34.0" y="258.0" text-anchor="middle" font-size="14" fill="#0f1115" font-weight="bold">W</text>
+<rect x="56" y="232" width="44" height="44" fill="#56ccf2" stroke="#2a2f3a" opacity="0.85"/>
+<text x="78.0" y="258.0" text-anchor="middle" font-size="14" fill="#0f1115" font-weight="bold">W</text>
+<rect x="100" y="232" width="44" height="44" fill="#3a3f4a" stroke="#2a2f3a"/>
+<rect x="144" y="232" width="44" height="44" fill="#1a1d24" stroke="#2a2f3a"/>
+<rect x="188" y="232" width="44" height="44" fill="#1a1d24" stroke="#2a2f3a"/>
+<rect x="232" y="232" width="44" height="44" fill="#1a1d24" stroke="#2a2f3a"/>
+<rect x="276" y="232" width="44" height="44" fill="#1a1d24" stroke="#2a2f3a"/>
+<rect x="12" y="276" width="44" height="44" fill="#56ccf2" stroke="#2a2f3a" opacity="0.85"/>
+<text x="34.0" y="302.0" text-anchor="middle" font-size="14" fill="#0f1115" font-weight="bold">W</text>
+<rect x="56" y="276" width="44" height="44" fill="#56ccf2" stroke="#2a2f3a" opacity="0.85"/>
+<text x="78.0" y="302.0" text-anchor="middle" font-size="14" fill="#0f1115" font-weight="bold">W</text>
+<rect x="100" y="276" width="44" height="44" fill="#1a1d24" stroke="#2a2f3a"/>
+<rect x="144" y="276" width="44" height="44" fill="#1a1d24" stroke="#2a2f3a"/>
+<rect x="188" y="276" width="44" height="44" fill="#3a3f4a" stroke="#2a2f3a"/>
+<rect x="232" y="276" width="44" height="44" fill="#1a1d24" stroke="#2a2f3a"/>
+<rect x="276" y="276" width="44" height="44" fill="#6fcf97" stroke="#2a2f3a" opacity="0.85"/>
+<text x="298.0" y="302.0" text-anchor="middle" font-size="14" fill="#0f1115" font-weight="bold">P</text>
+</svg>
+    </div>
+    <div>
+      <div class="cap">从 ME 出发的拓扑（自己在中心，距离=半径）</div>
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 420 420" style="background:#0f1115;font-family:-apple-system,sans-serif">
+<circle cx="210.0" cy="210.0" r="79.0" fill="none" stroke="#2a2f3a" stroke-dasharray="3,4"/>
+<text x="210.0" y="127.0" text-anchor="middle" fill="#5a6070" font-size="10">近</text>
+<circle cx="210.0" cy="210.0" r="115.0" fill="none" stroke="#2a2f3a" stroke-dasharray="3,4"/>
+<text x="210.0" y="91.0" text-anchor="middle" fill="#5a6070" font-size="10">中</text>
+<circle cx="210.0" cy="210.0" r="163.0" fill="none" stroke="#2a2f3a" stroke-dasharray="3,4"/>
+<text x="210.0" y="43.0" text-anchor="middle" fill="#5a6070" font-size="10">远</text>
+<line x1="210.0" y1="210.0" x2="328.0340041843487" y2="180.4914989539128" stroke="#5ee0a1" stroke-width="2" opacity="0.63"/>
+<rect x="260.9187023013918" y="183.77032442465205" width="28" height="16" rx="3" fill="#0f1115" stroke="#5ee0a1" opacity="0.9"/>
+<text x="274.9187023013918" y="197.77032442465205" text-anchor="middle" fill="#5ee0a1" font-size="11" font-weight="bold">5</text>
+<line x1="210.0" y1="210.0" x2="114.5405845398161" y2="305.4594154601839" stroke="#5ee0a1" stroke-width="2" opacity="0.56"/>
+<rect x="143.49732149689885" y="252.50267850310115" width="28" height="16" rx="3" fill="#0f1115" stroke="#5ee0a1" opacity="0.9"/>
+<text x="157.49732149689885" y="266.50267850310115" text-anchor="middle" fill="#5ee0a1" font-size="11" font-weight="bold">6</text>
+<line x1="210.0" y1="210.0" x2="137.7004687275068" y2="354.5990625449864" stroke="#5ee0a1" stroke-width="2" opacity="0.41"/>
+<rect x="156.23525780012875" y="279.5294843997425" width="28" height="16" rx="3" fill="#0f1115" stroke="#5ee0a1" opacity="0.9"/>
+<text x="170.23525780012875" y="293.5294843997425" text-anchor="middle" fill="#5ee0a1" font-size="11" font-weight="bold">8</text>
+<line x1="210.0" y1="210.0" x2="174.02388228627728" y2="353.90447085489086" stroke="#5ee0a1" stroke-width="2" opacity="0.48"/>
+<rect x="176.2131352574525" y="279.14745897019" width="28" height="16" rx="3" fill="#0f1115" stroke="#5ee0a1" opacity="0.9"/>
+<text x="190.2131352574525" y="293.14745897019" text-anchor="middle" fill="#5ee0a1" font-size="11" font-weight="bold">7</text>
+<line x1="210.0" y1="210.0" x2="145.00663163803188" y2="372.48342090492037" stroke="#5ee0a1" stroke-width="2" opacity="0.40"/>
+<rect x="160.25364740091754" y="289.3658814977062" width="28" height="16" rx="3" fill="#0f1115" stroke="#5ee0a1" opacity="0.9"/>
+<text x="174.25364740091754" y="303.3658814977062" text-anchor="middle" fill="#5ee0a1" font-size="11" font-weight="bold">9</text>
+<line x1="210.0" y1="210.0" x2="178.29455815266024" y2="368.52720923669875" stroke="#5ee0a1" stroke-width="2" opacity="0.41"/>
+<rect x="178.56200698396313" y="287.1899650801843" width="28" height="16" rx="3" fill="#0f1115" stroke="#5ee0a1" opacity="0.9"/>
+<text x="192.56200698396313" y="301.1899650801843" text-anchor="middle" fill="#5ee0a1" font-size="11" font-weight="bold">8</text>
+<line x1="210.0" y1="210.0" x2="319.32163332202424" y2="346.65204165253033" stroke="#5ee0a1" stroke-width="2" opacity="0.40"/>
+<rect x="256.12689832711334" y="275.1586229088917" width="28" height="16" rx="3" fill="#0f1115" stroke="#5ee0a1" opacity="0.9"/>
+<text x="270.12689832711334" y="289.1586229088917" text-anchor="middle" fill="#5ee0a1" font-size="11" font-weight="bold">9</text>
+<circle cx="328.0340041843487" cy="180.4914989539128" r="26" fill="#6fcf97" stroke="#fff" stroke-width="2"/>
+<text x="328.0340041843487" y="179.4914989539128" text-anchor="middle" fill="#0f1115" font-size="11" font-weight="bold">plant</text>
+<text x="328.0340041843487" y="193.4914989539128" text-anchor="middle" fill="#0f1115" font-size="10">#1</text>
+<circle cx="114.5405845398161" cy="305.4594154601839" r="26" fill="#f2c94c" stroke="#fff" stroke-width="2"/>
+<text x="114.5405845398161" y="304.4594154601839" text-anchor="middle" fill="#0f1115" font-size="11" font-weight="bold">cow</text>
+<text x="114.5405845398161" y="318.4594154601839" text-anchor="middle" fill="#0f1115" font-size="10">#1</text>
+<circle cx="137.7004687275068" cy="354.5990625449864" r="26" fill="#56ccf2" stroke="#fff" stroke-width="2"/>
+<text x="137.7004687275068" y="353.5990625449864" text-anchor="middle" fill="#0f1115" font-size="11" font-weight="bold">water</text>
+<text x="137.7004687275068" y="367.5990625449864" text-anchor="middle" fill="#0f1115" font-size="10">#1</text>
+<circle cx="174.02388228627728" cy="353.90447085489086" r="26" fill="#56ccf2" stroke="#fff" stroke-width="2"/>
+<text x="174.02388228627728" y="352.90447085489086" text-anchor="middle" fill="#0f1115" font-size="11" font-weight="bold">water</text>
+<text x="174.02388228627728" y="366.90447085489086" text-anchor="middle" fill="#0f1115" font-size="10">#2</text>
+<circle cx="145.00663163803188" cy="372.48342090492037" r="26" fill="#56ccf2" stroke="#fff" stroke-width="2"/>
+<text x="145.00663163803188" y="371.48342090492037" text-anchor="middle" fill="#0f1115" font-size="11" font-weight="bold">water</text>
+<text x="145.00663163803188" y="385.48342090492037" text-anchor="middle" fill="#0f1115" font-size="10">#3</text>
+<circle cx="178.29455815266024" cy="368.52720923669875" r="26" fill="#56ccf2" stroke="#fff" stroke-width="2"/>
+<text x="178.29455815266024" y="367.52720923669875" text-anchor="middle" fill="#0f1115" font-size="11" font-weight="bold">water</text>
+<text x="178.29455815266024" y="381.52720923669875" text-anchor="middle" fill="#0f1115" font-size="10">#4</text>
+<circle cx="319.32163332202424" cy="346.65204165253033" r="26" fill="#6fcf97" stroke="#fff" stroke-width="2"/>
+<text x="319.32163332202424" y="345.65204165253033" text-anchor="middle" fill="#0f1115" font-size="11" font-weight="bold">plant</text>
+<text x="319.32163332202424" y="359.65204165253033" text-anchor="middle" fill="#0f1115" font-size="10">#2</text>
+<circle cx="210.0" cy="210.0" r="28" fill="#ffffff" stroke="#f2c94c" stroke-width="3"/>
+<text x="210.0" y="214.0" text-anchor="middle" fill="#0f1115" font-size="13" font-weight="bold">ME</text>
+</svg>
+    </div>
+    <div>
+      <div class="cap">距离表</div>
+      <table><tr><td style="color:#6fcf97">●</td><td>plant_1</td><td style="text-align:right;color:#5ee0a1;font-weight:bold">5 步</td></tr><tr><td style="color:#f2c94c">●</td><td>cow_1</td><td style="text-align:right;color:#5ee0a1;font-weight:bold">6 步</td></tr><tr><td style="color:#56ccf2">●</td><td>water_2</td><td style="text-align:right;color:#5ee0a1;font-weight:bold">7 步</td></tr><tr><td style="color:#56ccf2">●</td><td>water_1</td><td style="text-align:right;color:#5ee0a1;font-weight:bold">8 步</td></tr><tr><td style="color:#56ccf2">●</td><td>water_4</td><td style="text-align:right;color:#5ee0a1;font-weight:bold">8 步</td></tr><tr><td style="color:#56ccf2">●</td><td>water_3</td><td style="text-align:right;color:#5ee0a1;font-weight:bold">9 步</td></tr><tr><td style="color:#6fcf97">●</td><td>plant_2</td><td style="text-align:right;color:#5ee0a1;font-weight:bold">9 步</td></tr></table>
+    </div>
+  </div>
+</div>
+<div class="panel">
+  <h2>Demo 2 — 列 3 被墙挡住</h2>
+  <div class="cols">
+    <div>
+      <div class="cap">世界地图</div>
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 332 332" style="background:#0f1115;font-family:-apple-system,sans-serif">
+<rect x="12" y="12" width="44" height="44" fill="#1a1d24" stroke="#2a2f3a"/>
+<rect x="56" y="12" width="44" height="44" fill="#1a1d24" stroke="#2a2f3a"/>
+<rect x="100" y="12" width="44" height="44" fill="#1a1d24" stroke="#2a2f3a"/>
+<rect x="144" y="12" width="44" height="44" fill="#3a3f4a" stroke="#2a2f3a"/>
+<rect x="188" y="12" width="44" height="44" fill="#3a3f4a" stroke="#2a2f3a"/>
+<rect x="232" y="12" width="44" height="44" fill="#1a1d24" stroke="#2a2f3a"/>
+<rect x="276" y="12" width="44" height="44" fill="#6fcf97" stroke="#2a2f3a" opacity="0.85"/>
+<text x="298.0" y="38.0" text-anchor="middle" font-size="14" fill="#0f1115" font-weight="bold">P</text>
+<rect x="12" y="56" width="44" height="44" fill="#1a1d24" stroke="#2a2f3a"/>
+<rect x="56" y="56" width="44" height="44" fill="#3a3f4a" stroke="#2a2f3a"/>
+<rect x="100" y="56" width="44" height="44" fill="#1a1d24" stroke="#2a2f3a"/>
+<circle cx="122.0" cy="78.0" r="12.32" fill="#ffffff" stroke="#f2c94c" stroke-width="3"/>
+<text x="122.0" y="82.0" text-anchor="middle" font-size="13" fill="#0f1115" font-weight="bold">ME</text>
+<rect x="144" y="56" width="44" height="44" fill="#3a3f4a" stroke="#2a2f3a"/>
+<rect x="188" y="56" width="44" height="44" fill="#1a1d24" stroke="#2a2f3a"/>
+<rect x="232" y="56" width="44" height="44" fill="#1a1d24" stroke="#2a2f3a"/>
+<rect x="276" y="56" width="44" height="44" fill="#1a1d24" stroke="#2a2f3a"/>
+<rect x="12" y="100" width="44" height="44" fill="#1a1d24" stroke="#2a2f3a"/>
+<rect x="56" y="100" width="44" height="44" fill="#3a3f4a" stroke="#2a2f3a"/>
+<rect x="100" y="100" width="44" height="44" fill="#3a3f4a" stroke="#2a2f3a"/>
+<rect x="144" y="100" width="44" height="44" fill="#3a3f4a" stroke="#2a2f3a"/>
+<rect x="188" y="100" width="44" height="44" fill="#3a3f4a" stroke="#2a2f3a"/>
+<rect x="232" y="100" width="44" height="44" fill="#3a3f4a" stroke="#2a2f3a"/>
+<rect x="276" y="100" width="44" height="44" fill="#1a1d24" stroke="#2a2f3a"/>
+<rect x="12" y="144" width="44" height="44" fill="#f2c94c" stroke="#2a2f3a" opacity="0.85"/>
+<text x="34.0" y="170.0" text-anchor="middle" font-size="14" fill="#0f1115" font-weight="bold">C</text>
+<rect x="56" y="144" width="44" height="44" fill="#1a1d24" stroke="#2a2f3a"/>
+<rect x="100" y="144" width="44" height="44" fill="#1a1d24" stroke="#2a2f3a"/>
+<rect x="144" y="144" width="44" height="44" fill="#3a3f4a" stroke="#2a2f3a"/>
+<rect x="188" y="144" width="44" height="44" fill="#1a1d24" stroke="#2a2f3a"/>
+<rect x="232" y="144" width="44" height="44" fill="#3a3f4a" stroke="#2a2f3a"/>
+<rect x="276" y="144" width="44" height="44" fill="#1a1d24" stroke="#2a2f3a"/>
+<rect x="12" y="188" width="44" height="44" fill="#1a1d24" stroke="#2a2f3a"/>
+<rect x="56" y="188" width="44" height="44" fill="#1a1d24" stroke="#2a2f3a"/>
+<rect x="100" y="188" width="44" height="44" fill="#3a3f4a" stroke="#2a2f3a"/>
+<rect x="144" y="188" width="44" height="44" fill="#3a3f4a" stroke="#2a2f3a"/>
+<rect x="188" y="188" width="44" height="44" fill="#1a1d24" stroke="#2a2f3a"/>
+<rect x="232" y="188" width="44" height="44" fill="#3a3f4a" stroke="#2a2f3a"/>
+<rect x="276" y="188" width="44" height="44" fill="#1a1d24" stroke="#2a2f3a"/>
+<rect x="12" y="232" width="44" height="44" fill="#56ccf2" stroke="#2a2f3a" opacity="0.85"/>
+<text x="34.0" y="258.0" text-anchor="middle" font-size="14" fill="#0f1115" font-weight="bold">W</text>
+<rect x="56" y="232" width="44" height="44" fill="#56ccf2" stroke="#2a2f3a" opacity="0.85"/>
+<text x="78.0" y="258.0" text-anchor="middle" font-size="14" fill="#0f1115" font-weight="bold">W</text>
+<rect x="100" y="232" width="44" height="44" fill="#3a3f4a" stroke="#2a2f3a"/>
+<rect x="144" y="232" width="44" height="44" fill="#3a3f4a" stroke="#2a2f3a"/>
+<rect x="188" y="232" width="44" height="44" fill="#1a1d24" stroke="#2a2f3a"/>
+<rect x="232" y="232" width="44" height="44" fill="#1a1d24" stroke="#2a2f3a"/>
+<rect x="276" y="232" width="44" height="44" fill="#1a1d24" stroke="#2a2f3a"/>
+<rect x="12" y="276" width="44" height="44" fill="#56ccf2" stroke="#2a2f3a" opacity="0.85"/>
+<text x="34.0" y="302.0" text-anchor="middle" font-size="14" fill="#0f1115" font-weight="bold">W</text>
+<rect x="56" y="276" width="44" height="44" fill="#56ccf2" stroke="#2a2f3a" opacity="0.85"/>
+<text x="78.0" y="302.0" text-anchor="middle" font-size="14" fill="#0f1115" font-weight="bold">W</text>
+<rect x="100" y="276" width="44" height="44" fill="#1a1d24" stroke="#2a2f3a"/>
+<rect x="144" y="276" width="44" height="44" fill="#3a3f4a" stroke="#2a2f3a"/>
+<rect x="188" y="276" width="44" height="44" fill="#3a3f4a" stroke="#2a2f3a"/>
+<rect x="232" y="276" width="44" height="44" fill="#1a1d24" stroke="#2a2f3a"/>
+<rect x="276" y="276" width="44" height="44" fill="#6fcf97" stroke="#2a2f3a" opacity="0.85"/>
+<text x="298.0" y="302.0" text-anchor="middle" font-size="14" fill="#0f1115" font-weight="bold">P</text>
+</svg>
+    </div>
+    <div>
+      <div class="cap">从 ME 出发的拓扑（自己在中心，距离=半径）</div>
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 420 420" style="background:#0f1115;font-family:-apple-system,sans-serif">
+<circle cx="210.0" cy="210.0" r="79.0" fill="none" stroke="#2a2f3a" stroke-dasharray="3,4"/>
+<text x="210.0" y="127.0" text-anchor="middle" fill="#5a6070" font-size="10">近</text>
+<circle cx="210.0" cy="210.0" r="115.0" fill="none" stroke="#2a2f3a" stroke-dasharray="3,4"/>
+<text x="210.0" y="91.0" text-anchor="middle" fill="#5a6070" font-size="10">中</text>
+<circle cx="210.0" cy="210.0" r="163.0" fill="none" stroke="#2a2f3a" stroke-dasharray="3,4"/>
+<text x="210.0" y="43.0" text-anchor="middle" fill="#5a6070" font-size="10">远</text>
+<line x1="210.0" y1="210.0" x2="120.19743878930848" y2="299.8025612106915" stroke="#5ee0a1" stroke-width="2" opacity="0.60"/>
+<rect x="146.60859133411967" y="249.39140866588036" width="28" height="16" rx="3" fill="#0f1115" stroke="#5ee0a1" opacity="0.9"/>
+<text x="160.60859133411967" y="263.39140866588036" text-anchor="middle" fill="#5ee0a1" font-size="11" font-weight="bold">6</text>
+<line x1="210.0" y1="210.0" x2="142.47074707950634" y2="345.0585058409873" stroke="#5ee0a1" stroke-width="2" opacity="0.47"/>
+<rect x="158.85891089372848" y="274.28217821254304" width="28" height="16" rx="3" fill="#0f1115" stroke="#5ee0a1" opacity="0.9"/>
+<text x="172.85891089372848" y="288.28217821254304" text-anchor="middle" fill="#5ee0a1" font-size="11" font-weight="bold">8</text>
+<line x1="210.0" y1="210.0" x2="170.46669311907772" y2="368.13322752368913" stroke="#5ee0a1" stroke-width="2" opacity="0.40"/>
+<rect x="174.25668121549273" y="286.973275138029" width="28" height="16" rx="3" fill="#0f1115" stroke="#5ee0a1" opacity="0.9"/>
+<text x="188.25668121549273" y="300.973275138029" text-anchor="middle" fill="#5ee0a1" font-size="11" font-weight="bold">9</text>
+<line x1="210.0" y1="210.0" x2="149.4633197542811" y2="361.3417006142972" stroke="#5ee0a1" stroke-width="2" opacity="0.40"/>
+<rect x="162.7048258648546" y="283.23793533786346" width="28" height="16" rx="3" fill="#0f1115" stroke="#5ee0a1" opacity="0.9"/>
+<text x="176.7048258648546" y="297.23793533786346" text-anchor="middle" fill="#5ee0a1" font-size="11" font-weight="bold">9</text>
+<line x1="210.0" y1="210.0" x2="175.67967635081777" y2="381.601618245911" stroke="#5ee0a1" stroke-width="2" opacity="0.40"/>
+<rect x="177.1238219929498" y="294.38089003525107" width="28" height="16" rx="3" fill="#0f1115" stroke="#5ee0a1" opacity="0.9"/>
+<text x="191.1238219929498" y="308.38089003525107" text-anchor="middle" fill="#5ee0a1" font-size="11" font-weight="bold">10</text>
+<circle cx="120.19743878930848" cy="299.8025612106915" r="26" fill="#f2c94c" stroke="#fff" stroke-width="2"/>
+<text x="120.19743878930848" y="298.8025612106915" text-anchor="middle" fill="#0f1115" font-size="11" font-weight="bold">cow</text>
+<text x="120.19743878930848" y="312.8025612106915" text-anchor="middle" fill="#0f1115" font-size="10">#1</text>
+<circle cx="142.47074707950634" cy="345.0585058409873" r="26" fill="#56ccf2" stroke="#fff" stroke-width="2"/>
+<text x="142.47074707950634" y="344.0585058409873" text-anchor="middle" fill="#0f1115" font-size="11" font-weight="bold">water</text>
+<text x="142.47074707950634" y="358.0585058409873" text-anchor="middle" fill="#0f1115" font-size="10">#1</text>
+<circle cx="170.46669311907772" cy="368.13322752368913" r="26" fill="#56ccf2" stroke="#fff" stroke-width="2"/>
+<text x="170.46669311907772" y="367.13322752368913" text-anchor="middle" fill="#0f1115" font-size="11" font-weight="bold">water</text>
+<text x="170.46669311907772" y="381.13322752368913" text-anchor="middle" fill="#0f1115" font-size="10">#2</text>
+<circle cx="149.4633197542811" cy="361.3417006142972" r="26" fill="#56ccf2" stroke="#fff" stroke-width="2"/>
+<text x="149.4633197542811" y="360.3417006142972" text-anchor="middle" fill="#0f1115" font-size="11" font-weight="bold">water</text>
+<text x="149.4633197542811" y="374.3417006142972" text-anchor="middle" fill="#0f1115" font-size="10">#3</text>
+<circle cx="175.67967635081777" cy="381.601618245911" r="26" fill="#56ccf2" stroke="#fff" stroke-width="2"/>
+<text x="175.67967635081777" y="380.601618245911" text-anchor="middle" fill="#0f1115" font-size="11" font-weight="bold">water</text>
+<text x="175.67967635081777" y="394.601618245911" text-anchor="middle" fill="#0f1115" font-size="10">#4</text>
+<circle cx="210.0" cy="210.0" r="28" fill="#ffffff" stroke="#f2c94c" stroke-width="3"/>
+<text x="210.0" y="214.0" text-anchor="middle" fill="#0f1115" font-size="13" font-weight="bold">ME</text>
+<text x="14" y="20" fill="#eb5757" font-size="12" font-weight="bold">unreachable (2):</text>
+<text x="14" y="38" fill="#eb5757" font-size="11">• plant_1</text>
+<text x="14" y="54" fill="#eb5757" font-size="11">• plant_2</text>
+</svg>
+    </div>
+    <div>
+      <div class="cap">距离表</div>
+      <table><tr><td style="color:#f2c94c">●</td><td>cow_1</td><td style="text-align:right;color:#5ee0a1;font-weight:bold">6 步</td></tr><tr><td style="color:#56ccf2">●</td><td>water_1</td><td style="text-align:right;color:#5ee0a1;font-weight:bold">8 步</td></tr><tr><td style="color:#56ccf2">●</td><td>water_2</td><td style="text-align:right;color:#5ee0a1;font-weight:bold">9 步</td></tr><tr><td style="color:#56ccf2">●</td><td>water_3</td><td style="text-align:right;color:#5ee0a1;font-weight:bold">9 步</td></tr><tr><td style="color:#56ccf2">●</td><td>water_4</td><td style="text-align:right;color:#5ee0a1;font-weight:bold">10 步</td></tr><tr><td style="color:#eb5757">✗</td><td style="color:#eb5757">plant_1</td><td style="text-align:right;color:#eb5757">不可达</td></tr><tr><td style="color:#eb5757">✗</td><td style="color:#eb5757">plant_2</td><td style="text-align:right;color:#eb5757">不可达</td></tr></table>
+    </div>
+  </div>
+</div>
+</body></html>
